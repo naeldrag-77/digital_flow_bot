@@ -48,7 +48,7 @@ PRICE_TEXT = (
     "⚠️ **ማሳሰቢያ:** ብዙ ቪዲዮ የምታሰሩ ትልቅ ቅናሽ አለው❗️\n"
     "🔱 **VIP ማስታወቂያ** የምታሰሩ VIP Channelችን መቀላቀል ትችላላችሁ እንዲሁም የንግድ website ይሰራላችኋል❗️\n\n"
     "• የማስታወቂያ ቪዲዮ ማሰራት የምትፈልጉ ነክታችሁ አናግሩን 👉 **@natismc**\n"
-    "📞 ለበለጠ መረጃ እና ለምክክር ደውሉ ☎️ **0918668550**"
+    "📞 ለበለጠ መረጃ እና ለምክክር ደውሉ ☎️ **0980572122**"
 )
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -82,6 +82,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     query = update.callback_query
     await query.answer()
     
+    chat_id = query.message.chat_id
     back_keyboard = [[InlineKeyboardButton("🔙 ወደ ዋናው ምናሌ (Main Menu)", callback_data="back_to_start")]]
     reply_markup = InlineKeyboardMarkup(back_keyboard)
     
@@ -94,18 +95,18 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             [InlineKeyboardButton("🎬 ቪዲዮ ናሙና 1", callback_data="vid_1")],
             [InlineKeyboardButton("🎬 ቪዲዮ ናሙና 2", callback_data="vid_2")],
             [InlineKeyboardButton("🎬 ቪዲዮ ናሙና 3", callback_data="vid_3")],
-            [InlineKeyboardButton("🔙 ወደ ዋናው ምናሌ", callback_data="back_to_start")]
+            [InlineKeyboardButton("🔙 ወደ ዋናው ምናሌ (Main Menu)", callback_data="back_to_start")]
         ]
         sample_text = (
             "🎬 **3. የቪዲዮ ናሙናዎች (Samples)**\n\n"
             "ከሰራናቸው የ digital ማስታወቂያዎች ውስጥ አንዱን መርጠው ይመልከቱ 👇👇\n\n"
             "• ለማዘዝ 👉 @natismc\n"
-            "📞 0918668550"
+            "📞 0980572122"
         )
         await query.edit_message_text(text=sample_text, reply_markup=InlineKeyboardMarkup(sample_keyboard), parse_mode="Markdown")
 
     elif query.data in ["vid_1", "vid_2", "vid_3"]:
-        vid_back_keyboard = [[InlineKeyboardButton("🔙 ወደ ናሙናዎች ምናሌ", callback_data="sample")]]
+        vid_back_keyboard = [[InlineKeyboardButton("🔙 ወደ ዋናው ምናሌ (Main Menu)", callback_data="back_to_start")]]
         
         video_urls = {
             "vid_1": "https://raw.githubusercontent.com/naeldrag-77/digital_flow_bot/main/lv_0_20261105151932.mp4",
@@ -115,10 +116,16 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         
         selected_video_url = video_urls[query.data]
         
+        # ቪዲዮ ሲላክ የድሮውን ጽሁፍ አጥፍቶ አዲስ ቪዲዮ በምቾት እንዲያሳይ
+        try:
+            await query.message.delete()
+        except:
+            pass
+            
         await context.bot.send_video(
-            chat_id=query.message.chat_id,
+            chat_id=chat_id,
             video=selected_video_url,
-            caption="🎬 የመረጡት የዲጂታል ማስታወቂያ ናሙና!\n\n• ለማዘዝ 👉 @natismc\n📞 0918668550",
+            caption="🎬 የመረጡት የዲጂታል ማስታወቂያ ናሙና!\n\n• ለማዘዝ 👉 @natismc\n📞 0980572122",
             reply_markup=InlineKeyboardMarkup(vid_back_keyboard)
         )
 
@@ -128,7 +135,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         contact_text = (
             "📞 **ለማዘዝ እና ለመነጋገር፦**\n\n"
             "• ቴሌግራም አድራሻ፦ **@natismc**\n"
-            "• ስልክ ቁጥር፦ `0918668550`\n\n"
+            "• ስልክ ቁጥር፦ `0980572122`\n\n"
             "በቀጥታ በመደወል ወይም በቴሌግራም በማናገር ትዕዛዝዎን ይስጡ!"
         )
         await query.edit_message_text(text=contact_text, reply_markup=reply_markup, parse_mode="Markdown")
@@ -151,7 +158,13 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 InlineKeyboardButton("📞 አግኙን / ማዘዣ (@natismc)", callback_data="contact"),
             ]
         ]
-        await query.edit_message_text(text=welcome_message, reply_markup=InlineKeyboardMarkup(main_keyboard), parse_mode="Markdown")
+        
+        # ከቪዲዮ መልዕክት ላይ ሆነን "ወደ ዋናው ምናሌ" ስንነካ ቪዲዮውን አጥፍቶ ዋናውን ሜኑ በጽሁፍ እንዲመልስ
+        try:
+            await query.message.delete()
+            await context.bot.send_message(chat_id=chat_id, text=welcome_message, reply_markup=InlineKeyboardMarkup(main_keyboard), parse_mode="Markdown")
+        except:
+            await query.edit_message_text(text=welcome_message, reply_markup=InlineKeyboardMarkup(main_keyboard), parse_mode="Markdown")
 
 def main() -> None:
     t = Thread(target=run_flask)
